@@ -1,0 +1,18 @@
+# When creating a release upload a newly created zip to the stockroom.
+# See https://github.com/wpstockroom/github-action#readme for details.
+name: Deploy to self hosted WP Stockroom
+on:
+  release:
+    types: [published]
+jobs:
+  release:
+    name: Deploy new Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Plugin Deploy on Stockroom
+        uses: wpstockroom/github-action@main
+        env:
+          STOCKROOM_URL: ${{ secrets.STOCKROOM_URL }}   # Required, the url to the Stockroom ie. https://wpstockroom.com
+          STOCKROOM_USER: ${{ secrets.STOCKROOM_USER }} # Required, an existing WP user on the STOCKROOM_URL site. Should have editor permissions.
+          STOCKROOM_PASS: ${{ secrets.STOCKROOM_PASS }} # Required, an application password, please use separate passwords per theme/plugin.
