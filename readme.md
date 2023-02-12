@@ -4,10 +4,12 @@ This is a bare minimum theme example for a theme to use the WP Stockroom updater
 
  - [style.css](style.css) Required for every theme. 
    - The _Version_ is required.
-   - The _Update URI_ should be set to your own hosted stockroom installation.  
-     This shoud be your domain without `https://` and no trailing slashes.  
+   - The _Update URI_ Should be set to your own hosted stockroom installation.  
+     This should be your domain without `https://` and no trailing slash.
+   - List of all [style.css headers](https://github.com/WordPress/twentysixteen/blob/master/style.css#L1)
  - [readme.txt](readme.txt)
-   - Only the _Version_ is required. but you probably should set the rest.
+   - Only the _Version_ is required. 
+   - List of all [readme.txt headers](https://github.com/WordPress/twentysixteen/blob/master/readme.txt#L1)
  - [class-wp-stockroom-updater.php](class-wp-stockroom-updater.php)  
    The Main stockroom updater script. It has to be included in _some_ way.
  - [functions.php](functions.php)  
