@@ -1,2 +1,2 @@
 === WP Stockroom Sample Theme ===
-Version: 1.1
+Version: 0.10.0
