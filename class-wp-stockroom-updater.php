@@ -14,10 +14,10 @@ class WP_Stockroom_Updater {
 	/**
 	 * Version of this updater script.
 	 */
-	const VERSION = '1.0.0';
+	const VERSION = '1.0.1';
 
 	/**
-	 * The endpoint where to look for
+	 * The endpoint to look at in the external stockroom.
 	 */
 	const REST_ROUTE = 'wp-stockroom/v1/package';
 
@@ -40,15 +40,15 @@ class WP_Stockroom_Updater {
 		$package_slug = explode( '/', $package_file )[0];
 		// The external repository could have a different plugin slug, here is a way to interject.
 
+		$full_endpoint_url            = 'https://' . $current_data['UpdateURI'] . '/wp-json/' . self::REST_ROUTE . '/?slug=' . $package_slug;
 		/**
-		 * Change the slug for the external stockroom url that is being checked.
+		 * Allow to change the url that is being checked.
 		 *
 		 * @param string $package_slug The current slug of the theme/plugin that is being checked.
 		 * @param array  $current_data Details of the plugin/theme being checked.
 		 */
-		$remote_package_slug = apply_filters( 'wp_stockroom_updater_slug', $package_slug, $current_data );
-		$endpoint            = 'https://' . $current_data['UpdateURI'] . '/wp-json/' . self::REST_ROUTE . '/' . $remote_package_slug . '/';
-		$external_data       = self::call_endpoint( $endpoint );
+		$full_endpoint_url = apply_filters( 'wp_stockroom_updater_url', $full_endpoint_url, $package_slug, $current_data );
+		$external_data       = self::call_endpoint( $full_endpoint_url );
 		if ( is_wp_error( $external_data ) ) {
 			// translators: The plugin/theme name.
 			$message = sprintf( __( 'An error occurred while checking for updates for %s' ), "<i>{$current_data['Name']}</i>" );
@@ -58,17 +58,22 @@ class WP_Stockroom_Updater {
 			wp_die( $error );
 		}
 
+		// Check if we got a list of results (a list of 1).
+		if ( !empty( $external_data[0] ) ) {
+			$external_data = $external_data[0];
+		}
+
 		if ( version_compare( $current_data['Version'], $external_data->version, '>=' ) ) {
 			return false; // remote version is the same, or even smaller.
 		}
 
 		$update_data = array(
-			'id'           => $endpoint,
+			'id'           => $full_endpoint_url,
 			'slug'         => $package_slug,
 			'version'      => $external_data->version,
-			'package'      => $external_data->package_link,
-			'tested'       => $external_data->wp_tested_version,
-			'requires_php' => $external_data->php_version,
+			'package'      => $external_data->package_zip_file,
+			'tested'       => $external_data->wp_tested_version ?? null,
+			'requires_php' => $external_data->php_version ?? null,
 		);
 
 		// Last change to change some update details.
