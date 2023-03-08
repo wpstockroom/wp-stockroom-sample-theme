@@ -8,13 +8,15 @@ if ( class_exists( 'WP_Stockroom_Updater' ) ) {
  * Class WP_Stockroom_Updater.
  *
  * phpcs:disable WordPress.NamingConventions
+ * phpcs:disable WordPress.WP.I18n.MissingArgDomain
+ * phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
  */
 class WP_Stockroom_Updater {
 
 	/**
 	 * Version of this updater script.
 	 */
-	const VERSION = '1.0.1';
+	const VERSION = '1.0.2';
 
 	/**
 	 * The endpoint to look at in the external stockroom.
@@ -40,26 +42,27 @@ class WP_Stockroom_Updater {
 		$package_slug = explode( '/', $package_file )[0];
 		// The external repository could have a different plugin slug, here is a way to interject.
 
-		$full_endpoint_url            = 'https://' . $current_data['UpdateURI'] . '/wp-json/' . self::REST_ROUTE . '/?slug=' . $package_slug;
+		$full_endpoint_url = 'https://' . $current_data['UpdateURI'] . '/wp-json/' . self::REST_ROUTE . '/?slug=' . $package_slug;
 		/**
 		 * Allow to change the url that is being checked.
 		 *
+		 * @param string $full_endpoint_url The url of the WP-Stockroom endpoint.
 		 * @param string $package_slug The current slug of the theme/plugin that is being checked.
 		 * @param array  $current_data Details of the plugin/theme being checked.
 		 */
 		$full_endpoint_url = apply_filters( 'wp_stockroom_updater_url', $full_endpoint_url, $package_slug, $current_data );
-		$external_data       = self::call_endpoint( $full_endpoint_url );
+		$external_data     = self::call_endpoint( $full_endpoint_url );
 		if ( is_wp_error( $external_data ) ) {
 			// translators: The plugin/theme name.
-			$message = sprintf( __( 'An error occurred while checking for updates for %s' ), "<i>{$current_data['Name']}</i>" );
+			$message  = sprintf( __( 'An error occurred while checking for updates for %s' ), "<i>{$current_data['Name']}</i>" );
 			$message .= "<br/>\n" . __( 'If this error persists, contact support.' ) . "<br/>\n<strong>" . __( 'Error details are:' ) . '</strong>';
-			$error   = new \WP_Error( "update_error_{$package_slug}", $message );
+			$error    = new \WP_Error( "update_error_{$package_slug}", $message );
 			$error->merge_from( $external_data );
 			wp_die( $error );
 		}
 
 		// Check if we got a list of results (a list of 1).
-		if ( !empty( $external_data[0] ) ) {
+		if ( ! empty( $external_data[0] ) ) {
 			$external_data = $external_data[0];
 		}
 
@@ -81,8 +84,10 @@ class WP_Stockroom_Updater {
 		/**
 		 * Give a chance to change the update details of the plugin/theme.
 		 *
-		 * @param string $package_slug The current slug of the theme/plugin that is being checked.
-		 * @param array  $current_data Details of the plugin/theme being checked.
+		 * @param array     $update_data  The update data for this update.
+		 * @param array     $current_data Details of the plugin/theme being checked.
+		 * @param \stdClass $external_data Raw data provided by the WP-Stockroom API.
+		 * @param string    $package_slug The current slug of the theme/plugin that is being checked.
 		 */
 		return apply_filters( 'wp_stockroom_updater_data', $update_data, $current_data, $external_data, $package_slug );
 	}
@@ -92,7 +97,7 @@ class WP_Stockroom_Updater {
 	 *
 	 * @param string $url The full url to the package rest endpoint.
 	 *
-	 * @return stdClass|WP_Error The package details, or an error.
+	 * @return \stdClass|\WP_Error The package details, or an error.
 	 */
 	protected static function call_endpoint( $url ) {
 		// Get the readme file.
@@ -112,7 +117,6 @@ class WP_Stockroom_Updater {
 			}
 
 			return new \WP_Error( $response_code, 'Invalid HTTP status code: ' . $response_code );
-
 		}
 
 		$body = wp_remote_retrieve_body( $r );
@@ -124,4 +128,3 @@ class WP_Stockroom_Updater {
 		return json_decode( $body );
 	}
 }
-
